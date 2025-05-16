@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>Elgasia - Text RPG</title>
+  <title>Elgasia - Text RPG ver 1.3</title>
   <style>
     body { font-family: 'Malgun Gothic', sans-serif; background: #232236; color: #fff; margin: 0; padding: 0;}
     #main { max-width: 900px; margin: 40px auto; background: #181828; padding: 30px; border-radius: 20px; box-shadow: 0 0 30px #0008;}
@@ -59,7 +59,8 @@
 </div>
 <script>
 const statNames = ["STR", "DEX", "INT", "VIT", "LUK"];
-const equipSlots = ["무기", "방패", "머리", "상의", "하의", "신발", "손"];
+const equipSlots = ["머리", "상의", "하의", "손", "신발", "무기", "방패"];
+
 const prefixes = ["불타는", "신속한", "고대의", "빛나는", "강인한", "재빠른", "현자의", "암흑의", "단단한", "용맹한"];
 const suffixes = ["광기", "지혜", "속도", "행운", "힘", "수호", "파멸", "마법", "불멸", "용기"];
 const rarityOrder = ["일반","레어","유니크","에픽","레전더리","유일"];
@@ -294,6 +295,7 @@ function rarityBonus(r){
 function itemDisplay(item){
   return `<span class="${rarityColors[item.rarity]}">[${item.rarity}]</span> <span class="ilv-txt">Lv.${item.ilv}</span> ${item.name} <span class="equip-bonus">STR:${item.stat[0]} DEX:${item.stat[1]} INT:${item.stat[2]} VIT:${item.stat[3]} LUK:${item.stat[4]} ${item.attackType==="근접"?`ATK:${item.stat[5]}`:""}${item.attackType==="원거리"?`RATK:${item.stat[6]}`:""}${item.attackType==="마법"?`MATK:${item.stat[7]}`:""}</span> ${item.skill?`<span class="equip-bonus">스킬:${item.skill}</span>`:""}${item.enh?` <span class="enh-lv">+${item.enh}</span>`:""}`;
 }
+
 function showInv() {
   let invhtml = "";
   user.inv.forEach((item,i)=>{
@@ -303,7 +305,38 @@ function showInv() {
   });
   if(!invhtml) invhtml="<div style='color:#888'>소지품이 없습니다.</div>";
   log(`<b>[소지품]</b> (${user.inv.length}/${inventoryLimit})<br>${invhtml}<br>
+    <button class="inv-btn" onclick="sellAllInv()">전체 판매 (착용 제외)</button><br>
     <button class="inv-btn" onclick="updateUser();log('이전 화면으로 돌아감');">닫기</button>`);
+}
+// 전체 판매 (착용 장비 제외)
+function sellAllInv(){
+  if(user.inv.length === 0){
+    log("판매할 아이템이 없습니다.");
+    return;
+  }
+  let totalGold = 0;
+  let soldNames = [];
+  // 착용 아이템은 제외하고 판매
+  let filteredInv = user.inv.filter(item=>{
+    for(let slot of equipSlots){
+      if(user.equip[slot] && user.equip[slot].name === item.name) return false;
+    }
+    return true;
+  });
+  if(filteredInv.length === 0){
+    log("판매할 아이템이 없습니다. (착용 중 아이템 제외)");
+    return;
+  }
+  filteredInv.forEach(item=>{
+    let idx = user.inv.indexOf(item);
+    if(idx >= 0) user.inv.splice(idx,1);
+    let sellValue = (item.ilv || 1) + (rarityBonus(item.rarity) * 5);
+    totalGold += sellValue;
+    soldNames.push(item.name);
+  });
+  user.gold += totalGold;
+  log(`착용 중이 아닌 모든 아이템 판매 완료! 총 ${totalGold}골드를 얻었다.<br>판매한 아이템: ${soldNames.join(", ")}<br><button class="inv-btn" onclick="showInv()">소지품으로 돌아가기</button>`);
+  updateUser();
 }
 function equipItem(idx){
   let item = user.inv[idx];
