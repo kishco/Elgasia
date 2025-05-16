@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>Elgasia - Text RPG ver 1.3</title>
+  <title>Elgasia - Text RPG 1.3</title>
   <style>
     body { font-family: 'Malgun Gothic', sans-serif; background: #232236; color: #fff; margin: 0; padding: 0;}
     #main { max-width: 900px; margin: 40px auto; background: #181828; padding: 30px; border-radius: 20px; box-shadow: 0 0 30px #0008;}
@@ -104,15 +104,13 @@ const uniqueMonsters = [
 
 // 몬스터 생성
 function makeMonster(level, isDungeon = false) {
-  // 유일 몬스터 확률 (던전에서만 등장)
-  if(isDungeon && Math.random() < 0.01) { // 1% 확률
+  if(isDungeon && Math.random() < 0.01) {
     let name = uniqueMonsters[rint(0, uniqueMonsters.length-1)];
     let hp = Math.floor(50 + level*10 + rint(10,30));
     let atk = Math.floor(15 + level*5 + rint(5,15));
     let def = Math.floor(level/3 + rint(2,6));
     return { name, hp, atk, def, unique: true };
   }
-  // 일반 몬스터
   let prefix = monsterPrefixes[rint(0, monsterPrefixes.length - 1)];
   let nameBase = monsterNames[rint(0, monsterNames.length - 1)];
   let name = prefix + " " + nameBase;
@@ -308,7 +306,6 @@ function showInv() {
     <button class="inv-btn" onclick="sellAllInv()">전체 판매 (착용 제외)</button><br>
     <button class="inv-btn" onclick="updateUser();log('이전 화면으로 돌아감');">닫기</button>`);
 }
-// 전체 판매 (착용 장비 제외)
 function sellAllInv(){
   if(user.inv.length === 0){
     log("판매할 아이템이 없습니다.");
@@ -338,6 +335,7 @@ function sellAllInv(){
   log(`착용 중이 아닌 모든 아이템 판매 완료! 총 ${totalGold}골드를 얻었다.<br>판매한 아이템: ${soldNames.join(", ")}<br><button class="inv-btn" onclick="showInv()">소지품으로 돌아가기</button>`);
   updateUser();
 }
+
 function equipItem(idx){
   let item = user.inv[idx];
   if(!item || !item.slot || equipSlots.indexOf(item.slot) === -1) return;
@@ -354,6 +352,7 @@ function sellInv(idx){
   log(`${itemDisplay(item)}<br><span style="color:#ffe55e">${sellValue}G에 판매되었습니다!</span><br><button class="inv-btn" onclick="showInv()">돌아가기</button>`);
   updateUser();
 }
+
 function levelupCheck(){
   while(user.exp>=expNeed(user.level) && user.level<999){
     user.exp -= expNeed(user.level);
@@ -517,7 +516,6 @@ function battle(type) {
     battleLog.push(`${monsterNameDisplay}의 공격! <span class="dmg-log">${user.name}에게 ${monDmg}의 피해</span> (내 HP:${Math.max(userhp,0)})`);
     if(userhp<=0){ userhp=0; break;}
   }
-  // 10턴 넘으면 무조건 패배
   let win = (monhp<=0 && turn<=maxTurn);
   if(turn>maxTurn) win = false;
   let baseExp = isDungeon ? Math.floor(user.level*4)+rint(16,32) : Math.floor(user.level*1.7)+rint(6,16);
@@ -545,7 +543,6 @@ function battle(type) {
     user.hp = userhp;
     if(userhp<=0) user.hp=1;
     rewardMsg = `<br><span class="dead-log">패배! 10턴 초과 혹은 몬스터에게 쓰러졌습니다. HP ${userhp<=0?'1로 복구':`(${userhp})`}.</span>`;
-    // 던전이라면 장비손실 체크
     if(isDungeon && userhp<=0){
       let lost = [];
       if(Math.random()<0.2){
